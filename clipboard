@@ -1,0 +1,11 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use open qw< :std :encoding(UTF-8) >;
+use Clipboard;
+
+my $text = do { undef $/; <>; };
+Clipboard->copy($text);
+
+my $lines = $text =~ y/\n/\n/;
+printf "Copied %d line%s\n", $lines, $lines != 1 ? "s" : "";
