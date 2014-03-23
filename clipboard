@@ -4,6 +4,15 @@ use warnings;
 use open qw< :std :encoding(UTF-8) >;
 use Clipboard;
 
+BEGIN {
+    if ($Clipboard::driver->isa('Clipboard::Xclip')) {
+        no warnings 'redefine';
+        *Clipboard::Xclip::all_selections = sub {
+            qw(clipboard primary buffer secondary);
+        };
+    }
+}
+
 my $text = do { undef $/; <>; };
 Clipboard->copy($text);
 
