@@ -10,6 +10,10 @@ BEGIN {
         *Clipboard::Xclip::all_selections = sub {
             qw(clipboard primary buffer secondary);
         };
+    } elsif ($Clipboard::driver->isa('Clipboard::MacPasteboard')) {
+        $Clipboard::MacPasteboard::board->set(
+            default_flavor => 'public.utf8-plain-text'
+        );
     }
 }
 
