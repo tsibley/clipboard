@@ -11,6 +11,7 @@ BEGIN {
             qw(clipboard primary buffer secondary);
         };
     } elsif ($Clipboard::driver->isa('Clipboard::MacPasteboard')) {
+        no warnings 'once';
         $Clipboard::MacPasteboard::board->set(
             default_flavor => 'public.utf8-plain-text'
         );
