@@ -22,4 +22,5 @@ my $text = do { undef $/; <>; };
 Clipboard->copy($text);
 
 my $lines = $text =~ y/\n/\n/;
+   $lines = 1 if not $lines and length $text;
 printf "Copied %d line%s\n", $lines, $lines != 1 ? "s" : "";
