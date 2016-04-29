@@ -1,26 +1,28 @@
-#!/usr/bin/env perl
-use strict;
-use warnings;
-use open qw< :std :encoding(UTF-8) >;
-use Clipboard;
+#!/bin/bash
+set -e -o pipefail
 
-BEGIN {
-    if ($Clipboard::driver->isa('Clipboard::Xclip')) {
-        no warnings 'redefine';
-        *Clipboard::Xclip::all_selections = sub {
-            qw(clipboard primary buffer secondary);
-        };
-    } elsif ($Clipboard::driver->isa('Clipboard::MacPasteboard')) {
-        no warnings 'once';
-        $Clipboard::MacPasteboard::board->set(
-            default_flavor => 'public.utf8-plain-text'
-        );
-    }
+os=$(uname -s)
+case $os in
+    Linux)
+        copy="xclip -i -selection clipboard"
+        ;;
+    Darwin)
+        copy="pbcopy -Prefer txt"
+        ;;
+    *)
+        echo "I don’t know how to get cozy with the clipboard on $os…" >&2
+        exit 1
+        ;;
+esac
+
+function count_lines() {
+    lines=$(wc -l | perl -pe 's/\s+//g')
+    if [[ $lines -lt 2 ]]; then
+        echo "Copied 1 line"
+    else
+        echo "Copied $lines lines"
+    fi
 }
 
-my $text = do { undef $/; <>; };
-Clipboard->copy($text);
-
-my $lines = $text =~ y/\n/\n/;
-   $lines = 1 if not $lines and length $text;
-printf "Copied %d line%s\n", $lines, $lines != 1 ? "s" : "";
+# Copy contents of named files or stdin
+cat "$@" | tee >($copy >/dev/null) | count_lines
