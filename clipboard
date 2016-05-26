@@ -1,19 +1,16 @@
 #!/bin/bash
 set -e -o pipefail
-
 os=$(uname -s)
-case $os in
-    Linux)
-        copy="xclip -i -selection clipboard"
-        ;;
-    Darwin)
-        copy="pbcopy -Prefer txt"
-        ;;
-    *)
-        echo "I don’t know how to get cozy with the clipboard on $os…" >&2
-        exit 1
-        ;;
-esac
+
+for arg; do
+    case "$arg" in
+        -f|--file)
+            as_file=$2
+            shift 2;;
+        --)
+            shift; break;;
+    esac
+done
 
 function count_lines() {
     lines=$(wc -l | perl -pe 's/\s+//g')
@@ -24,5 +21,35 @@ function count_lines() {
     fi
 }
 
-# Copy contents of named files or stdin
-cat "$@" | tee >($copy >/dev/null) | count_lines
+if [[ -z "$as_file" ]]; then
+    case $os in
+        Linux)
+            copy="xclip -i -selection clipboard"
+            ;;
+        Darwin)
+            copy="pbcopy -Prefer txt"
+            ;;
+        *)
+            echo "I don’t know how to get cozy with the clipboard on ${os}…" >&2
+            exit 1
+            ;;
+    esac
+    # Copy _contents_ of named files or stdin
+    cat "$@" | tee >($copy >/dev/null) | count_lines
+else
+    abs_file="$(cd "$(dirname "$as_file")"; pwd)/$(basename "$as_file")"
+    case $os in
+        Darwin)
+            osascript \
+                -e 'on run args' \
+                    -e 'set the clipboard to POSIX file (first item of args)' \
+                -e 'end' \
+                "$abs_file"
+            ;;
+        *)
+            echo "I don’t know how to copy a _file_ object to the clipboard on ${os}…" >&2
+            exit 1
+            ;;
+    esac
+    echo "Copied $as_file as a file"
+fi
