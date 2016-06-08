@@ -2,15 +2,32 @@
 set -e -o pipefail
 os=$(uname -s)
 
+function usage() {
+    cat <<.
+usage: $(basename $0) file.txt [file2.txt]  # copy file contents to the clipboard
+       $(basename $0) -f image.png          # copy image.png _as a file object_ to the clipboard
+       ... | $(basename $0)                 # copy stdin to the clipboard
+.
+}
+
 for arg; do
     case "$arg" in
         -f|--file)
             as_file=$2
             shift 2;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
         --)
             shift; break;;
     esac
 done
+
+if [[ -z "$as_file" && -z "$1" && -t 0 ]]; then
+    usage
+    exit 1
+fi
 
 function count_lines() {
     lines=$(wc -l | perl -pe 's/\s+//g')
