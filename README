@@ -1,0 +1,3 @@
+usage: clipboard file.txt [file2.txt]  # copy file contents to the clipboard
+       clipboard -f image.png          # copy image.png _as a file object_ to the clipboard
+       ... | clipboard                 # copy stdin to the clipboard
